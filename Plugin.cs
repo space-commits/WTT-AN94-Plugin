@@ -27,13 +27,14 @@ namespace WTTAN94
         public static bool IsAN94 { get; set; } = false;
         public static bool IsFiring { get; set; } = false;
         public static int ShotCount { get; set; } = 0;
+        public static float ShotTimer { get; set; } = 0f;
 
         private void Awake()
         {
             string settings = "Settings";
             BurstROFMulti = Config.Bind<float>(settings, "Burst ROF Multi", 3f, new ConfigDescription("", new AcceptableValueRange<float>(1f, 4f), new ConfigurationManagerAttributes { Order = 1 }));
             BurstRecoilMulti = Config.Bind<float>(settings, "Burst Rrecoil Multi", 0.5f, new ConfigDescription("", new AcceptableValueRange<float>(0.1f, 1f), new ConfigurationManagerAttributes { Order = 10}));
-            ShotResetDelay = Config.Bind<float>(settings, "Shot Reset Delay", 0.15f, new ConfigDescription("Time Delay After Firing To Determine If Firing Has Stopped.", new AcceptableValueRange<float>(0.01f, 2f), new ConfigurationManagerAttributes { Order = 15 }));
+            ShotResetDelay = Config.Bind<float>(settings, "Shot Reset Delay", 0.05f, new ConfigDescription("Time Delay After Firing To Determine If Firing Has Stopped.", new AcceptableValueRange<float>(0.01f, 2f), new ConfigurationManagerAttributes { Order = 15 }));
 
             new UpdateWeaponVariablesPatch().Enable();
             new ShootPatch().Enable();

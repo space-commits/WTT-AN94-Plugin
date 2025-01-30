@@ -12,6 +12,7 @@ using EFT;
 using HarmonyLib;
 using static EFT.Player;
 using static EFT.ScenesPreset;
+using static GClass605;
 
 namespace WTTAN94
 {
@@ -61,16 +62,15 @@ namespace WTTAN94
             if (player != null && player.IsYourPlayer && Plugin.IsAN94 && player.MovementContext.CurrentState.Name != EPlayerState.Stationary)
             {
                 Plugin.IsFiring = true;
+                Plugin.ShotTimer = 0f;
                 Plugin.ShotCount += 1;
-                str *= fc.Item.SelectedFireMode != EFT.InventoryLogic.Weapon.EFireMode.semiauto && Plugin.ShotCount <= 2 ? Plugin.BurstRecoilMulti.Value : 1f;
+                str *= fc.Item.SelectedFireMode != EFT.InventoryLogic.Weapon.EFireMode.single && Plugin.ShotCount <= 2 ? Plugin.BurstRecoilMulti.Value : 1f;
             }
         }
     }
 
     public class PlayerUpdatePatch : ModulePatch
     {
-        private static float _shotTimer = 0f;
-
         protected override MethodBase GetTargetMethod()
         {
             return typeof(Player).GetMethod("LateUpdate", BindingFlags.Instance | BindingFlags.Public);
@@ -82,7 +82,7 @@ namespace WTTAN94
             {
                 //hyperburst
                 fc.Item.MalfState.OverheatFirerateMultInited = true;
-                if (Plugin.ShotCount <= 2 && fc.Item.SelectedFireMode != EFT.InventoryLogic.Weapon.EFireMode.semiauto)
+                if (Plugin.ShotCount <= 2 && fc.Item.SelectedFireMode != EFT.InventoryLogic.Weapon.EFireMode.single)
                 {
                     fc.Item.MalfState.OverheatFirerateMult = Plugin.BurstROFMulti.Value;
                 }
@@ -91,17 +91,17 @@ namespace WTTAN94
 
             if (Plugin.IsFiring) 
             {
-                _shotTimer += Time.deltaTime;
+                Plugin.ShotTimer += Time.deltaTime;
 
-                if (_shotTimer >= Plugin.ShotResetDelay.Value)
+                if (!fc.autoFireOn && Plugin.ShotTimer >= Plugin.ShotResetDelay.Value)
                 {
-                    _shotTimer = 0f;
+                    Plugin.ShotTimer = 0f;
                     Plugin.IsFiring = false;
                     Plugin.ShotCount = 0;
                 }
             }
 
-            Logger.LogWarning($"Is Firing: {Plugin.IsFiring}, Shot Count: {Plugin.ShotCount}, Is AN94:  {Plugin.IsAN94}" );
+            //Logger.LogWarning($"Is Firing: {Plugin.IsFiring}, Shot Count: {Plugin.ShotCount}, Is AN94:  {Plugin.IsAN94}, Firemode:  {fc.Item.SelectedFireMode}" );
  
         }
 
