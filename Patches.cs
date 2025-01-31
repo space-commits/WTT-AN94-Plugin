@@ -63,55 +63,23 @@ namespace WTTAN94
             {
                 Plugin.IsFiring = true;
                 Plugin.ShotTimer = 0f;
-                Plugin.ShotCount += 1;
-                str *= fc.Item.SelectedFireMode != EFT.InventoryLogic.Weapon.EFireMode.single && Plugin.ShotCount <= 2 ? Plugin.BurstRecoilMulti.Value : 1f;
+                Plugin.RecoilShotCount += 1;
+                str *= fc.Item.SelectedFireMode != EFT.InventoryLogic.Weapon.EFireMode.single && Plugin.RecoilShotCount <= 2 ? Plugin.BurstRecoilMulti.Value : 1f;
             }
         }
-    }
 
-    public class PlayerUpdatePatch : ModulePatch
-    {
-        protected override MethodBase GetTargetMethod()
-        {
-            return typeof(Player).GetMethod("LateUpdate", BindingFlags.Instance | BindingFlags.Public);
-        }
-
-        private static void PWAUpdate(Player player, Player.FirearmController fc)
-        {
-            if (fc != null && Plugin.IsAN94)
-            {
-                //hyperburst
-                fc.Item.MalfState.OverheatFirerateMultInited = true;
-                if (Plugin.ShotCount <= 2 && fc.Item.SelectedFireMode != EFT.InventoryLogic.Weapon.EFireMode.single)
-                {
-                    fc.Item.MalfState.OverheatFirerateMult = Plugin.BurstROFMulti.Value;
-                }
-                else fc.Item.MalfState.OverheatFirerateMult = 1f;
-            }
-
-            if (Plugin.IsFiring) 
-            {
-                Plugin.ShotTimer += Time.deltaTime;
-
-                if (!fc.autoFireOn && Plugin.ShotTimer >= Plugin.ShotResetDelay.Value)
-                {
-                    Plugin.ShotTimer = 0f;
-                    Plugin.IsFiring = false;
-                    Plugin.ShotCount = 0;
-                }
-            }
-
-            //Logger.LogWarning($"Is Firing: {Plugin.IsFiring}, Shot Count: {Plugin.ShotCount}, Is AN94:  {Plugin.IsAN94}, Firemode:  {fc.Item.SelectedFireMode}" );
- 
-        }
 
         [PatchPostfix]
-        private static void PatchPostfix(Player __instance)
+        private static void PatchPostFix(ProceduralWeaponAnimation __instance, ref float str)
         {
-            if (__instance.IsYourPlayer)
+            FirearmController fc = (FirearmController)_fcField.GetValue(__instance);
+            if (fc == null) return;
+            Player player = (Player)_playerField.GetValue(fc);
+            if (player != null && player.IsYourPlayer && Plugin.IsAN94 && player.MovementContext.CurrentState.Name != EPlayerState.Stationary)
             {
-                Player.FirearmController fc = __instance.HandsController as Player.FirearmController;
-                PWAUpdate(__instance, fc);
+                Plugin.IsFiring = true;
+                Plugin.ShotTimer = 0f;
+                Plugin.ROFShotCount += 1;
             }
         }
     }
